@@ -10,6 +10,8 @@ venv/
 Lib/
 Scripts/
 Include/
+etc/
+share/
 pyvenv.cfg
 backend/Lib/
 backend/Scripts/

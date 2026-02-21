@@ -10,7 +10,7 @@ from router import classify_query
 from llm import call_llm
 from evaluator import evaluate
 from memory import get_or_create_conversation, add_message, get_history
-from config import LOGS_PATH
+from config import LOGS_PATH, FAISS_INDEX_PATH
 
 app = FastAPI(title="Clearpath Support Chatbot API")
 
@@ -67,6 +67,17 @@ def log_request(entry):
         json.dump(logs, f, indent=2)
 
 
+# --- Health Check ---
+
+@app.get("/health")
+def health():
+    index_exists = os.path.exists(FAISS_INDEX_PATH)
+    return {
+        "status": "ok",
+        "faiss_index_ready": index_exists
+    }
+
+
 # --- Main Endpoint ---
 
 @app.post("/query", response_model=QueryResponse)
@@ -79,76 +90,96 @@ def query(req: QueryRequest):
 
     question = req.question.strip()
 
-    # Step 1: Get or create conversation
-    conv_id, _ = get_or_create_conversation(req.conversation_id)
-
-    # Step 2: Classify the query (simple or complex)
-    route = classify_query(question)
-    classification = route["classification"]
-    model_used = route["model_used"]
-
-    # Step 3: Retrieve relevant chunks
     try:
-        chunks = retrieve(question)
-    except FileNotFoundError:
-        # FAISS index not built yet
-        chunks = []
+        # Get or create conversation
+        conv_id, _ = get_or_create_conversation(req.conversation_id)
 
-    chunks_retrieved = len(chunks)
+        # Classify the query (simple or complex)
+        route = classify_query(question)
+        classification = route["classification"]
+        model_used = route["model_used"]
 
-    # Step 4: Get conversation history for context
-    history = get_history(conv_id)
+        # Retrieve relevant chunks
+        try:
+            chunks = retrieve(question)
+        except FileNotFoundError:
+            chunks = []
 
-    # Step 5: Call LLM
-    llm_result = call_llm(question, chunks, model_used, history)
-    answer = llm_result["answer"]
-    tokens_input = llm_result["tokens_input"]
-    tokens_output = llm_result["tokens_output"]
+        chunks_retrieved = len(chunks)
 
-    # Step 6: Evaluate the response
-    flags = evaluate(answer, chunks, chunks_retrieved)
+        # Get conversation history for context
+        history = get_history(conv_id)
 
-    # Step 7: Format sources from retrieved chunks
-    sources = []
-    for chunk in chunks:
-        sources.append({
-            "document": chunk["document"],
-            "page": chunk["page"],
-            "relevance_score": chunk["relevance_score"]
-        })
+        # Call LLM
+        llm_result = call_llm(question, chunks, model_used, history)
+        answer = llm_result["answer"]
+        tokens_input = llm_result["tokens_input"]
+        tokens_output = llm_result["tokens_output"]
 
-    # Step 8: Save conversation history
-    add_message(conv_id, "user", question)
-    add_message(conv_id, "assistant", answer)
+        # Evaluate the response
+        flags = evaluate(answer, chunks, chunks_retrieved)
 
-    # Step 9: Calculate latency
-    latency_ms = int((time.time() - start_time) * 1000)
+        # Format sources from retrieved chunks
+        sources = []
+        for chunk in chunks:
+            sources.append({
+                "document": chunk["document"],
+                "page": chunk["page"],
+                "relevance_score": chunk["relevance_score"]
+            })
 
-    # Step 10: Log the request
-    log_entry = {
-        "query": question,
-        "classification": classification,
-        "model_used": model_used,
-        "tokens_input": tokens_input,
-        "tokens_output": tokens_output,
-        "latency_ms": latency_ms
-    }
-    log_request(log_entry)
+        # Save conversation history
+        add_message(conv_id, "user", question)
+        add_message(conv_id, "assistant", answer)
 
-    # Build response matching the exact API contract
-    return QueryResponse(
-        answer=answer,
-        metadata=MetadataInfo(
-            model_used=model_used,
-            classification=classification,
-            tokens=TokenInfo(input=tokens_input, output=tokens_output),
-            latency_ms=latency_ms,
-            chunks_retrieved=chunks_retrieved,
-            evaluator_flags=flags
-        ),
-        sources=sources,
-        conversation_id=conv_id
-    )
+        # Calculate latency
+        latency_ms = int((time.time() - start_time) * 1000)
+
+        # Log the request
+        log_entry = {
+            "query": question,
+            "classification": classification,
+            "model_used": model_used,
+            "tokens_input": tokens_input,
+            "tokens_output": tokens_output,
+            "latency_ms": latency_ms
+        }
+        log_request(log_entry)
+
+        # Build response matching the exact API contract
+        return QueryResponse(
+            answer=answer,
+            metadata=MetadataInfo(
+                model_used=model_used,
+                classification=classification,
+                tokens=TokenInfo(input=tokens_input, output=tokens_output),
+                latency_ms=latency_ms,
+                chunks_retrieved=chunks_retrieved,
+                evaluator_flags=flags
+            ),
+            sources=sources,
+            conversation_id=conv_id
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Catch-all: return a safe response instead of crashing
+        latency_ms = int((time.time() - start_time) * 1000)
+        conv_id = req.conversation_id or "error"
+        return QueryResponse(
+            answer=f"Sorry, something went wrong: {str(e)}",
+            metadata=MetadataInfo(
+                model_used="none",
+                classification="simple",
+                tokens=TokenInfo(input=0, output=0),
+                latency_ms=latency_ms,
+                chunks_retrieved=0,
+                evaluator_flags=[]
+            ),
+            sources=[],
+            conversation_id=conv_id
+        )
 
 
 if __name__ == "__main__":
