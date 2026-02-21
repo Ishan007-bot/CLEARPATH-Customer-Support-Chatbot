@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.env
+faiss_index.bin
+metadata.pkl
+logs.json
+*.egg-info/
+venv/
+.venv/
+Lib/
+Scripts/
+Include/
+pyvenv.cfg
+backend/Lib/
+backend/Scripts/
+backend/Include/
+backend/pyvenv.cfg
