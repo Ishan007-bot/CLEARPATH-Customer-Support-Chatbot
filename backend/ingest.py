@@ -1,26 +1,3 @@
-"""
-Document Ingestion Script
-=========================
-This script handles the full RAG ingestion pipeline:
-1. Load PDFs from the /docs folder
-2. Extract text page by page using pdfplumber
-3. Chunk the text into 300-500 word pieces with 50-word overlap
-4. Generate embeddings using sentence-transformers
-5. Build and save a FAISS index + metadata
-
-WHY CHUNKING?
-- LLMs have limited context windows. We can't feed entire documents.
-- Smaller chunks allow the retriever to find the MOST relevant passage
-  instead of returning a huge document where the answer is buried.
-- Typical chunk size of 300-500 words is a sweet spot: big enough to carry
-  meaning, small enough to be precise in retrieval.
-
-WHY OVERLAP?
-- Without overlap, a sentence at the boundary of two chunks gets split.
-- The answer could be half in chunk A and half in chunk B.
-- 50-word overlap ensures boundary content appears in both chunks,
-  so we don't lose context at the edges.
-"""
 
 import os
 import pickle
