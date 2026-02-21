@@ -131,7 +131,7 @@ def build_faiss_index(chunks):
     texts = [c["text"] for c in chunks]
 
     print(f"Generating embeddings for {len(texts)} chunks...")
-    embeddings = model.encode(texts, show_progress_bar=True, batch_size=64)
+    embeddings = model.encode(texts, show_progress_bar=True, batch_size=8)
     embeddings = np.array(embeddings, dtype="float32")
 
     # Build FAISS index (L2 distance, simple flat index — works great for <100k vectors)
