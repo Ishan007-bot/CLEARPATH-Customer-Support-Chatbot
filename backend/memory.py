@@ -1,17 +1,3 @@
-"""
-Conversation Memory
-===================
-Stores past conversation turns in memory using a simple dictionary.
-Limits to last N turns to control token usage.
-
-Structure:
-    conversation_store = {
-        "conv_id": [
-            {"role": "user", "content": "..."},
-            {"role": "assistant", "content": "..."}
-        ]
-    }
-"""
 
 import uuid
 from config import MAX_MEMORY_TURNS

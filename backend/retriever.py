@@ -1,13 +1,3 @@
-"""
-Retriever Module
-================
-Handles query-to-chunk retrieval using FAISS.
-
-On each query:
-1. Convert query text to an embedding
-2. Search the FAISS index for top-K similar chunks
-3. Return chunk text, document name, page number, and similarity score
-"""
 
 import os
 import pickle
