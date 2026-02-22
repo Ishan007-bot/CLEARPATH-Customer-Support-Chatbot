@@ -90,16 +90,11 @@ python eval_harness.py
 
 ## 🏆 Bonus Challenges Attempted
 
-1.  **Conversation Memory**: Implemented an in-memory session store (`memory.py`) that maintains the last 5 turns of conversation to handle follow-up questions (e.g., "Tell me more about **it**").
-2.  **Advanced Evaluation Engine**: Built a multi-flag evaluator (`evaluator.py`) that checks for:
-    *   `refusal`: If the model refuses to answer.
-    *   `no_context`: If the answer is likely a hallucination (not found in chunks).
-    *   `multiple_conflicting_sources`: If retrieved chunks offer contradictory info.
-3.  **High-Fidelity UI**: Created a custom Streamlit theme with:
-    *   Glassmorphism design and dark mode.
-    *   Real-time telemetry (Latency, Token usage, Model detection).
-    *   Dynamic source citations with page numbers and relevance scores.
-4.  **Deterministic Routing**: Used a high-speed, rule-based classifier in `router.py` to avoid the cost and latency of using an LLM to route queries.
+1.  **Conversation Memory**: Full multi-turn support via `memory.py`. Managed token-cost tradeoffs by limiting turns and reasoning about design in `Written_answers.md`.
+2.  **Token-by-Token Streaming**: Implemented real-time response streaming in both the FastAPI backend (`/query_stream`) and Streamlit frontend for a premium user experience.
+3.  **Custom Evaluation Harness**: Developed a standalone test suite (`eval_harness.py`) with 8 pre-defined queries covering multiple intent categories to verify system accuracy.
+4.  **High-Fidelity Project UI**: Engineered a unique glassmorphism interface with real-time telemetry, model detection, and interactive source citations.
+5.  **Deterministic Hybrid Routing**: Optimized for cost and speed by using a rule-based engine in `router.py` instead of an LLM for classification.
 
 ---
 
