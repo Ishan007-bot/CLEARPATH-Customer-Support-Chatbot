@@ -21,9 +21,15 @@ def get_or_create_conversation(conversation_id=None):
 
 
 def add_message(conversation_id, role, content):
-    """Add a message to the conversation history."""
+    """Add a message to the conversation history, avoiding exact duplicates."""
     if conversation_id not in conversation_store:
         conversation_store[conversation_id] = []
+
+    # Simple deduplication: Check if the last message is identical
+    if conversation_store[conversation_id]:
+        last_msg = conversation_store[conversation_id][-1]
+        if last_msg["role"] == role and last_msg["content"] == content:
+            return  # Skip duplicate
 
     conversation_store[conversation_id].append({
         "role": role,
