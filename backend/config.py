@@ -21,7 +21,7 @@ CHUNK_OVERLAP = 50      # overlap in words between chunks
 MIN_CHUNK_SIZE = 50     # ignore tiny chunks
 
 # Retrieval settings
-TOP_K = 5               # number of chunks to retrieve
+TOP_K = 10              # number of chunks to retrieve
 
 # Groq API
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
