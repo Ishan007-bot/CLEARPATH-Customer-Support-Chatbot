@@ -35,6 +35,9 @@ The absolute **biggest cost driver** isn't the AI's "thinking" (the output)—it
 
 The single **highest-ROI change** to cut costs without killing quality would be **Context Pruning or Summarization**. Instead of dumping 10 full chunks into the prompt, I could use a much smaller, cheaper model to quickly summarize those chunks or just extract the relevant sentences. Reducing the input context by 50% would almost halve the 70B model's bill without losing the core information needed for the answer.
 
+One optimization I'd **definitely avoid** is cutting down the conversation memory too aggressively. It’s tempting to save tokens by only remembering the last one or two messages, but and from a user perspective, that’s a nightmare. If a customer has to repeat their account ID or the error they just described three messages ago, the "AI" suddenly feels like a broken phone tree. I’d rather pay for the extra input tokens to keep the conversation feeling human and continuous than save a few cents and frustrate every user.
+
+
 ### Q4 — What Is Broken
 
 If I’m being honest, the most significant flaw in this system is the **rule-based deterministic router**. Right now, it relies on word counts and a hardcoded list of keywords like "pricing" or "workflow" to decide if a query is complex. 
@@ -44,5 +47,10 @@ This is a huge liability for a real deployment because language is messy. If a u
 I shipped with it anyway because, for a prototype, it’s **lightning fast**. It has zero latency and zero token cost. In a timed assessment where every millisecond counts for the UI experience, a rule-based router is the best way to keep the app feeling snappy. It handles 90% of cases perfectly, and I felt that for this scale, the speed bonus outweighed the edge-case errors.
 
 If I had more time, I wouldn't use an LLM for routing—that's too slow. Instead, I’d train a **small, local classifier (like a DistilBERT model)** specifically on the Clearpath documentation. This model would be small enough to run on the same CPU as the backend but smart enough to understand the *intent* behind a question. It wouldn't care if the user said "cost" or "pricing" or "how much dough"; it would recognize the intent of "Commercial Inquiry" and route it to the 70B model with the right retrieval chunks every single time.
+### AI Usage
 
+I used AI as a companion to help me move faster through specific technical hurdles and debugging sessions. Here are a few of the exact prompts I used when I got stuck on implementation details:
 
+- "I'm using pdfplumber to extract text from these enterprise docs, but some pages are returning null bytes and weird whitespace that's causing issues with my FAISS encoding. Can you show me a robust way to clean/strip these characters in Python before I chunk the text?"
+- "FAISS is returning L2 distances for my RAG chunks. How do I mathematically convert these distances into a percentage-based 'Relevance Score' (0 to 1) that I can display to users in a UI?"
+- "I'm using st.chat_input in Streamlit. How do I properly structure st.session_state to store a chat history that persists through reruns and also keep track of a unique conversation_id for my backend logging?"
