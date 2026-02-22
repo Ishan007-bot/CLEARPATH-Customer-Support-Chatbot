@@ -26,7 +26,7 @@ from config import SIMPLE_MODEL, COMPLEX_MODEL
 GREETINGS = {"hi", "hello", "hey", "thanks", "thank you", "bye", "goodbye", "ok", "okay", "sure", "yes", "no"}
 
 # Keywords that signal a complex query
-COMPLEX_KEYWORDS = {"how", "why", "explain", "compare", "steps", "difference", "describe", "elaborate"}
+COMPLEX_KEYWORDS = {"how", "why", "explain", "compare", "steps", "difference", "describe", "elaborate", "pricing", "plans", "cost"}
 
 # Words that start yes/no questions
 YES_NO_STARTERS = {"is", "are", "was", "were", "do", "does", "did", "can", "could", "will", "would", "should", "has", "have", "had"}
