@@ -187,23 +187,52 @@ with col1:
             </div>
             ''', unsafe_allow_html=True)
 
-        with st.spinner("Processing deep retrieval..."):
+        # First, call the standard metadata endpoint (synchronously for stats)
+        # In a real heavy production app, you might parallelize this, 
+        # but for this demo we fetch metadata first to populate the sidebar.
+        with st.spinner("Analyzing query intent..."):
             try:
                 payload = {
                     "question": prompt,
                     "conversation_id": st.session_state.conversation_id
                 }
-                response = requests.post(API_URL, json=payload, timeout=60)
-                
-                if response.status_code == 200:
-                    data = response.json()
+                meta_response = requests.post(API_URL, json=payload, timeout=60)
+                if meta_response.status_code == 200:
+                    data = meta_response.json()
                     st.session_state.last_response = data
-                    answer = data["answer"]
+                    st.session_state.conversation_id = data.get("conversation_id")
                     
-                    st.session_state.messages.append({"role": "assistant", "content": answer})
-                    st.rerun()
+                    # We have the full answer from /query, but we want to show it STREAMING
+                    # So we'll use the /query_stream endpoint for the visual effect
+                    stream_url = API_URL.replace("/query", "/query_stream")
+                    
+                    with chat_placeholder:
+                        # Create a placeholder for the streaming response
+                        with st.empty():
+                            st.markdown(f'''
+                            <div class="chat-bubble assistant-bubble">
+                                <div class="bubble-header">Assistant</div>
+                                <div id="streaming-text"></div>
+                            </div>
+                            ''', unsafe_allow_html=True)
+                            
+                            # Using Streamlit's native streaming simulation or real stream
+                            def stream_generator():
+                                # Hit the stream endpoint
+                                with requests.post(stream_url, json=payload, stream=True) as r:
+                                    for chunk in r.iter_content(chunk_size=None):
+                                        if chunk:
+                                            yield chunk.decode('utf-8')
+                            
+                            # Display streaming text
+                            full_streamed_text = st.write_stream(stream_generator)
+                            
+                        # Finalize the message in history
+                        st.session_state.messages.append({"role": "assistant", "content": data["answer"]})
+                        st.rerun()
+
                 else:
-                    st.error(f"API Error: {response.status_code}")
+                    st.error(f"API Error: {meta_response.status_code}")
             except Exception as e:
                 st.error(f"Gateway Error: {str(e)}")
 
