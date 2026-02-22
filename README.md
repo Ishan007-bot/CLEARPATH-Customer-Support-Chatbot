@@ -93,7 +93,7 @@ python eval_harness.py
 1.  **Conversation Memory**: Full multi-turn support via `memory.py`. Managed token-cost tradeoffs by limiting turns and reasoning about design in `Written_answers.md`.
 2.  **Token-by-Token Streaming**: Implemented real-time response streaming in both the FastAPI backend (`/query_stream`) and Streamlit frontend for a premium user experience.
 3.  **Custom Evaluation Harness**: Developed a standalone test suite (`eval_harness.py`) with 8 pre-defined queries covering multiple intent categories to verify system accuracy.
-4.  **High-Fidelity Project UI**: Engineered a unique glassmorphism interface with real-time telemetry, model detection, and interactive source citations.
+4.  **AWS Live Deployment**: Deployed the application on AWS EC2 instance with public IP address.
 5.  **Deterministic Hybrid Routing**: Optimized for cost and speed by using a rule-based engine in `router.py` instead of an LLM for classification.
 
 ---
