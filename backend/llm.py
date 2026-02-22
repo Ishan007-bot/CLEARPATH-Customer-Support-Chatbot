@@ -77,3 +77,27 @@ def call_llm(question, chunks, model, conversation_history=None):
             "tokens_input": 0,
             "tokens_output": 0
         }
+
+
+def call_llm_stream(question, chunks, model, conversation_history=None):
+    """
+    Call Groq API with streaming enabled.
+    Yields tokens one by one.
+    """
+    messages = build_messages(question, chunks, conversation_history)
+
+    try:
+        stream = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0.3,
+            max_tokens=1024,
+            stream=True
+        )
+
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    except Exception as e:
+        yield f" [Error during streaming: {str(e)}]"
