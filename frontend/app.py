@@ -209,6 +209,9 @@ with col1:
                     st.session_state.last_response = data
                     st.session_state.conversation_id = data.get("conversation_id")
                     
+                    # IMPORTANT: Update payload with the new/confirmed ID so the stream call uses the same session
+                    payload["conversation_id"] = st.session_state.conversation_id
+                    
                     # We have the full answer from /query, but we want to show it STREAMING
                     # So we'll use the /query_stream endpoint for the visual effect
                     stream_url = API_URL.replace("/query", "/query_stream")
@@ -235,6 +238,7 @@ with col1:
                             full_streamed_text = st.write_stream(stream_generator)
                             
                         # Finalize the message in history
+                        # (Note: We use the answer from the first meta_response to ensure consistency)
                         st.session_state.messages.append({"role": "assistant", "content": data["answer"]})
                         st.rerun()
 
