@@ -17,7 +17,6 @@ from config import LOGS_PATH, FAISS_INDEX_PATH
 
 app = FastAPI(title="Clearpath Support Chatbot API")
 
-
 # --- Request/Response Models ---
 
 class QueryRequest(BaseModel):
