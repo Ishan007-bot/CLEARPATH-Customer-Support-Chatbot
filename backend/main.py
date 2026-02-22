@@ -2,12 +2,15 @@ import time
 import json
 import os
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+
 from pydantic import BaseModel
 from typing import Optional
 
 from retriever import retrieve
 from router import classify_query
-from llm import call_llm
+from llm import call_llm, call_llm_stream
+
 from evaluator import evaluate
 from memory import get_or_create_conversation, add_message, get_history
 from config import LOGS_PATH, FAISS_INDEX_PATH
@@ -180,6 +183,42 @@ def query(req: QueryRequest):
             sources=[],
             conversation_id=conv_id
         )
+
+
+# --- Streaming Endpoint ---
+
+@app.post("/query_stream")
+def query_stream(req: QueryRequest):
+    """
+    Streaming version of the query endpoint.
+    Yields tokens as they are generated.
+    """
+    if not req.question or not req.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty.")
+
+    question = req.question.strip()
+    conv_id, _ = get_or_create_conversation(req.conversation_id)
+    route = classify_query(question)
+    model_used = route["model_used"]
+    
+    try:
+        chunks = retrieve(question)
+    except:
+        chunks = []
+    
+    history = get_history(conv_id)
+
+    def stream_generator():
+        full_answer = ""
+        for token in call_llm_stream(question, chunks, model_used, history):
+            full_answer += token
+            yield token
+        
+        # After streaming completes, we add to memory
+        add_message(conv_id, "user", question)
+        add_message(conv_id, "assistant", full_answer)
+
+    return StreamingResponse(stream_generator(), media_type="text/plain")
 
 
 if __name__ == "__main__":
