@@ -141,13 +141,20 @@ if "conversation_id" not in st.session_state:
 if "last_response" not in st.session_state:
     st.session_state.last_response = None
 
-# --- Main UI ---
+# Build 2.0.6 - Ultra-Visible Logo
 st.markdown('''
 <div class="header-container">
-    <div class="brand-title">🧭 CLEARPATH</div>
+    <div style="display: flex; align-items: center; gap: 18px;">
+        <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+            <path d="M16 8L14 14L8 16L10 10L16 8Z" fill="#a78bfa" stroke="white" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="1" fill="white"/>
+        </svg>
+        <div class="brand-title" style="font-size: 2rem; letter-spacing: -0.02em;">CLEARPATH</div>
+    </div>
     <div style="display: flex; gap: 1rem; align-items: center;">
         <span class="tag-green">● SYSTEM LIVE</span>
-        <span style="color: #64748b; font-size: 0.8rem;">Build 2.0.4</span>
+        <span style="color: #64748b; font-size: 0.8rem;">Build 2.0.6</span>
     </div>
 </div>
 ''', unsafe_allow_html=True)
