@@ -37,35 +37,37 @@ def classify_query(question):
     Classify a query as 'simple' or 'complex' using rule-based logic.
 
     Returns:
-        dict with 'classification' and 'model_used'
+        dict with 'classification', 'model_used', and 'requires_context'
     """
     text = question.strip().lower()
     words = text.split()
     word_count = len(words)
 
+    # List of queries that specifically DON'T need retrieval (Identity/Greetings)
+    PERSONAL_QUERIES = {"who are you", "what is your name", "what's your name", "identify yourself", "what are you"}
+
     # Check if it's a greeting
     clean_text = text.rstrip("!?.,")
-    if clean_text in GREETINGS:
-        return {"classification": "simple", "model_used": SIMPLE_MODEL}
+    if clean_text in GREETINGS or any(q in text for q in PERSONAL_QUERIES):
+        return {"classification": "simple", "model_used": SIMPLE_MODEL, "requires_context": False}
 
     # Check for yes/no question (starts with yes/no starter words)
     if words and words[0] in YES_NO_STARTERS and text.endswith("?"):
         if word_count < 10:
             return {"classification": "simple", "model_used": SIMPLE_MODEL}
 
-    # Check for complex keywords
     for word in words:
         stripped = word.rstrip("?!.,")
         if stripped in COMPLEX_KEYWORDS:
-            return {"classification": "complex", "model_used": COMPLEX_MODEL}
+            return {"classification": "complex", "model_used": COMPLEX_MODEL, "requires_context": True}
 
     # Check for multiple question marks (indicates complex/multi-part question)
     if text.count("?") >= 2:
-        return {"classification": "complex", "model_used": COMPLEX_MODEL}
+        return {"classification": "complex", "model_used": COMPLEX_MODEL, "requires_context": True}
 
     # Check word count
     if word_count >= 10:
-        return {"classification": "complex", "model_used": COMPLEX_MODEL}
+        return {"classification": "complex", "model_used": COMPLEX_MODEL, "requires_context": True}
 
     # Default: short simple queries
-    return {"classification": "simple", "model_used": SIMPLE_MODEL}
+    return {"classification": "simple", "model_used": SIMPLE_MODEL, "requires_context": True}

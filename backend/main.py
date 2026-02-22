@@ -101,13 +101,16 @@ def query(req: QueryRequest):
         route = classify_query(question)
         classification = route["classification"]
         model_used = route["model_used"]
+        requires_context = route.get("requires_context", True)
 
-        # Retrieve relevant chunks
-        try:
-            chunks = retrieve(question)
-        except FileNotFoundError:
-            chunks = []
-
+        # Retrieve relevant chunks ONLY if required
+        chunks = []
+        if requires_context:
+            try:
+                chunks = retrieve(question)
+            except FileNotFoundError:
+                chunks = []
+        
         chunks_retrieved = len(chunks)
 
         # Get conversation history for context
@@ -200,11 +203,14 @@ def query_stream(req: QueryRequest):
     conv_id, _ = get_or_create_conversation(req.conversation_id)
     route = classify_query(question)
     model_used = route["model_used"]
+    requires_context = route.get("requires_context", True)
     
-    try:
-        chunks = retrieve(question)
-    except:
-        chunks = []
+    chunks = []
+    if requires_context:
+        try:
+            chunks = retrieve(question)
+        except:
+            chunks = []
     
     history = get_history(conv_id)
 
